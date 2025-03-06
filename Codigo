@@ -1,0 +1,81 @@
+!pip install matplotlib
+!pip install colorama
+
+import random
+import matplotlib.pyplot as plt
+
+
+class GameAgent:
+    def __init__(self, secret_number, max_attempts=5, mode="normal", difficulty="medio"):
+        self.secret_number = secret_number
+        self.max_attempts = max_attempts
+        self.attempts = 0
+        self.state = "Esperando tentativa"
+        self.history = []  
+        self.mode = mode
+        self.difficulty = difficulty
+        self.setup_difficulty()
+
+    def setup_difficulty(self):
+        if self.difficulty == "facil":
+            self.max_attempts = 10
+        elif self.difficulty == "medio":
+            self.max_attempts = 5
+        elif self.difficulty == "dificil":
+            self.max_attempts = 3
+
+    def make_guess(self, guess):
+        self.attempts += 1
+        self.history.append(guess)
+
+        if guess == self.secret_number:
+            self.state = "Acertou!"
+            return "Parabéns! Você acertou o número."
+        elif self.attempts >= self.max_attempts:
+            self.state = "Fim do jogo"
+            return f"Game Over! O número era {self.secret_number}."
+        elif guess < self.secret_number:
+            self.state = "Tentativa errada (muito baixo)"
+            return self.get_hint(guess, "maior")
+        else:
+            self.state = "Tentativa errada (muito alto)"
+            return self.get_hint(guess, "menor")
+
+    def get_hint(self, guess, direction):
+        if direction == "maior":
+            hint = "O número é maior. Tente novamente. "
+        else:
+            hint = "O número é menor. Tente novamente. "
+            
+        return hint
+
+def plot_attempts(agent):
+    plt.figure(figsize=(8,5))
+    plt.plot(range(1, len(agent.history) + 1), agent.history, marker='o', linestyle='-')
+    plt.axhline(y=agent.secret_number, color='r', linestyle='--', label='Número Secreto')
+    plt.xlabel("Tentativas")
+    plt.ylabel("Valor do Palpite")
+    plt.title("Evolução das Tentativas do Jogador")
+    plt.legend()
+    plt.show()
+
+def start_game():
+    difficulty = input("Escolha a dificuldade (facil, medio, dificil): ").lower()
+    mode = input("Escolha o modo de jogo (normal, pares, impares): ").lower()
+    
+    if mode == "pares":
+        secret_number = random.choice([x for x in range(1, 101) if x % 2 == 0])
+    elif mode == "impares":
+        secret_number = random.choice([x for x in range(1, 101) if x % 2 != 0])
+    else:
+        secret_number = random.randint(1, 100)
+    
+    agent = GameAgent(secret_number=secret_number, difficulty=difficulty, mode=mode)
+    
+    while agent.state not in ["Acertou!", "Fim do jogo"]:
+        guess = int(input("Digite um número: "))
+        print(agent.make_guess(guess))
+
+    plot_attempts(agent)
+
+start_game()
